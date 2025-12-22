@@ -10,8 +10,8 @@ Build machine learning models that predict whether chemical compounds will be ef
 
 | Metric | Value |
 |--------|-------|
-| Best Test R² | 0.76 (RandomForest & HistGradientBoosting) |
-| Best Test RMSE | 0.63 |
+| Best Test R² | 0.78 (RandomForest & HistGradientBoosting) |
+| Best Test RMSE | 0.58 |
 | Dataset Size | 1,319 compounds |
 | Features | 881 PubChem fingerprints → 178 after variance filtering |
 
@@ -19,11 +19,11 @@ Build machine learning models that predict whether chemical compounds will be ef
 
 | Model | Train R² | Test R² | RMSE | Overfitting |
 |-------|----------|---------|------|-------------|
-| RandomForestRegressor | 0.95 | 0.76 | 0.63 | Moderate |
-| HistGradientBoostingRegressor | 0.94 | 0.76 | 0.63 | Moderate |
-| SVR | 0.85 | 0.74 | 0.65 | Low |
-| XGBRegressor | 0.97 | 0.74 | 0.66 | High |
-| NuSVR | 0.85 | 0.74 | 0.66 | Low |
+| RandomForestRegressor | 0.95 | 0.78 | 0.58 | Moderate |
+| HistGradientBoostingRegressor | 0.94 | 0.78 | 0.59 | Moderate |
+| XGBRegressor | 0.97 | 0.77 | 0.61 | High |
+| MLPRegressor | 0.94 | 0.75 | 0.63 | High |
+| SVR | 0.86 | 0.72 | 0.67 | Low |
 
 ## Pipeline Overview
 

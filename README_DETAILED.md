@@ -618,12 +618,11 @@ Molecule Structure → Mathematical Features → ML Model → Predicted Activity
 ║  │   │                                                                          │   │  ║
 ║  │   │ Model                         │ Train R² │ Test R² │ RMSE  │ Overfit     │   │  ║
 ║  │   │ ──────────────────────────────┼──────────┼─────────┼───────┼─────────    │   │  ║
-║  │   │ RandomForestRegressor         │ 0.95     │ 0.76    │ 0.63  │ Moderate    │   │  ║
-║  │   │ HistGradientBoostingRegressor │ 0.94     │ 0.76    │ 0.63  │ Moderate    │   │  ║
-║  │   │ SVR                           │ 0.85     │ 0.74    │ 0.65  │ Low         │   │  ║
-║  │   │ XGBRegressor                  │ 0.97     │ 0.74    │ 0.66  │ High        │   │  ║
-║  │   │ NuSVR                         │ 0.85     │ 0.74    │ 0.66  │ Low         │   │  ║
-║  │   │ GradientBoostingRegressor     │ 0.84     │ 0.73    │ 0.67  │ Low         │   │  ║
+║  │   │ RandomForestRegressor         │ 0.95     │ 0.78    │ 0.58  │ Moderate    │   │  ║
+║  │   │ HistGradientBoostingRegressor │ 0.94     │ 0.78    │ 0.59  │ Moderate    │   │  ║
+║  │   │ XGBRegressor                  │ 0.97     │ 0.77    │ 0.61  │ High        │   │  ║
+║  │   │ MLPRegressor                  │ 0.94     │ 0.75    │ 0.63  │ High        │   │  ║
+║  │   │ SVR                           │ 0.86     │ 0.72    │ 0.67  │ Low         │   │  ║
 ║  │   │ ...                           │ ...      │ ...     │ ...   │ ...         │   │  ║
 ║  │   └─────────────────────────────────────────────────────────────────────────┘   │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────────┘  ║
@@ -650,8 +649,8 @@ Molecule Structure → Mathematical Features → ML Model → Predicted Activity
 ║  │ • MAE: Mean Absolute Error (lower = better)                                      │  ║
 ║  │                                                                                  │  ║
 ║  │ INTERPRETATION:                                                                  │  ║
-║  │   R² = 0.76 means model explains 76% of pIC50 variation                         │  ║
-║  │   RMSE = 0.63 means predictions are off by ~0.63 pIC50 units on average         │  ║
+║  │   R² = 0.78 means model explains 78% of pIC50 variation                         │  ║
+║  │   RMSE = 0.58 means predictions are off by ~0.58 pIC50 units on average         │  ║
 ║  │                                                                                  │  ║
 ║  │ OVERFITTING ANALYSIS:                                                            │  ║
 ║  │   • Low: R² drop < 0.15 (SVR, NuSVR, GradientBoosting)                          │  ║
