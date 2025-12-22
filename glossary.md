@@ -149,7 +149,11 @@ Dividing the dataset into two subsets:
 ### **Overfitting**
 When a model learns the training data too well, including noise and outliers, and fails to generalize to new data.
 * *Symptom:* High training accuracy, low test accuracy.
-* *Project observation:* Training R² = 0.97, Test R² = 0.37 — classic overfitting.
+* *Project observation:* Tree-based models show varying degrees of overfitting:
+  - **Severe:** DecisionTreeRegressor (Train R² = 0.97, Test R² = 0.68, drop = 0.29)
+  - **High:** ExtraTreesRegressor, XGBRegressor (R² drop > 0.23)
+  - **Moderate:** RandomForestRegressor, HistGradientBoostingRegressor (R² drop ~0.18-0.19)
+  - **Low:** SVR, NuSVR, GradientBoostingRegressor (R² drop ~0.11)
 
 ### **LazyPredict**
 A Python library that helps build a baseline by running many machine learning models with default parameters on a dataset and ranking them by performance metrics.
@@ -157,11 +161,11 @@ A Python library that helps build a baseline by running many machine learning mo
 
 ### **Random Forest Regressor**
 An ensemble learning method that constructs a multitude of decision trees at training time and outputs the mean prediction of the individual trees.
-* *Project result:* Test R² = 0.29
+* *Project result:* Train R² = 0.95, Test R² = 0.76 (Moderate overfitting)
 
 ### **HistGradientBoostingRegressor**
 A gradient boosting algorithm optimized for speed using histogram-based splitting.
-* *Project result:* Best test performance with R² = 0.37
+* *Project result:* Train R² = 0.94, Test R² = 0.76 (Best test performance, tied with RandomForest)
 
 ---
 
@@ -170,19 +174,27 @@ A gradient boosting algorithm optimized for speed using histogram-based splittin
 ### **R² (Coefficient of Determination)**
 A statistical measure that represents the proportion of the variance for a dependent variable ($y$) that's explained by an independent variable ($X$).
 * *Range:* 0 to 1 (can be negative for poor models).
-* *Interpretation:* R² = 0.37 means model explains 37% of pIC50 variation.
-* *Goal for QSAR:* > 0.6 is generally considered good.
+* *Interpretation:* R² = 0.76 means model explains 76% of pIC50 variation.
+* *Goal for QSAR:* > 0.6 is generally considered good. ✓ Achieved!
 
 ### **RMSE (Root Mean Squared Error)**
 The standard deviation of the prediction errors (residuals). It tells you how concentrated the data is around the line of best fit.
 * *Goal:* A lower value indicates better fit.
+* *Project result:* Best test RMSE = 0.63 (RandomForest & HistGradientBoosting)
 
 ### **Scatter Plot (Experimental vs. Predicted)**
 A visualization comparing the ground truth values from the lab (X-axis) against the values predicted by the AI (Y-axis).
 * *Ideal:* All points falling on a straight diagonal line.
 
 ### **Project Results Summary**
-* Best test R²: 0.37 (HistGradientBoostingRegressor)
-* Significant overfitting observed (Training R² ~0.97 vs Test R² ~0.37)
+* **Best test R²:** 0.76 (RandomForestRegressor & HistGradientBoostingRegressor)
+* **Best test RMSE:** 0.63
+* **Top 5 models by test R²:**
+  1. RandomForestRegressor: R² = 0.76
+  2. HistGradientBoostingRegressor: R² = 0.76
+  3. SVR: R² = 0.74
+  4. XGBRegressor: R² = 0.74
+  5. NuSVR: R² = 0.74
+* **Overfitting analysis:** Tree-based models show moderate to severe overfitting; SVR/NuSVR show low overfitting
 * All Lipinski descriptors statistically significant for distinguishing active/inactive compounds
-* **Next steps:** Feature engineering, hyperparameter tuning, cross-validation, ensemble methods
+* **Next steps:** Hyperparameter tuning, cross-validation, ensemble methods, feature engineering

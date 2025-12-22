@@ -255,9 +255,9 @@ This document provides a sequential evaluation of the Jupyter notebook `ml_for_a
 
 **Conclusions Content**:
 - ✅ Statistical validation: All 5 descriptors significant (p < 0.05)
-- ✅ Training R²: 0.97-0.98 (ExtraTrees, RandomForest)
-- ✅ Test R²: Max 0.37 (HistGradientBoostingRegressor)
-- ✅ Identifies overfitting problem
+- ✅ Training R²: 0.94-0.97 (ExtraTrees, RandomForest, DecisionTree)
+- ✅ Test R²: Max 0.76 (RandomForestRegressor & HistGradientBoostingRegressor)
+- ✅ Identifies overfitting problem (tree models show moderate to severe overfitting)
 - ✅ Lists next steps for improvement
 
 **Section Assessment**: ✅ GOOD - Conclusions now accurately reflect the actual results.

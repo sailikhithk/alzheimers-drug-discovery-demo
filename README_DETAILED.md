@@ -614,15 +614,17 @@ Molecule Structure → Mathematical Features → ML Model → Predicted Activity
 ║  │          │                                                                       │  ║
 ║  │          ▼                                                                       │  ║
 ║  │   ┌─────────────────────────────────────────────────────────────────────────┐   │  ║
-║  │   │ COMPARISON TABLE (sorted by R² score)                                    │   │  ║
+║  │   │ COMPARISON TABLE (sorted by Test R² score)                               │   │  ║
 ║  │   │                                                                          │   │  ║
-║  │   │ Model                    │ R²     │ RMSE   │ Time (s)                    │   │  ║
-║  │   │ ─────────────────────────┼────────┼────────┼─────────                    │   │  ║
-║  │   │ ExtraTreesRegressor      │ 0.85   │ 0.42   │ 1.2                         │   │  ║
-║  │   │ RandomForestRegressor    │ 0.83   │ 0.45   │ 2.1                         │   │  ║
-║  │   │ GradientBoostingRegressor│ 0.81   │ 0.48   │ 3.5                         │   │  ║
-║  │   │ XGBRegressor             │ 0.80   │ 0.49   │ 1.8                         │   │  ║
-║  │   │ ...                      │ ...    │ ...    │ ...                         │   │  ║
+║  │   │ Model                         │ Train R² │ Test R² │ RMSE  │ Overfit     │   │  ║
+║  │   │ ──────────────────────────────┼──────────┼─────────┼───────┼─────────    │   │  ║
+║  │   │ RandomForestRegressor         │ 0.95     │ 0.76    │ 0.63  │ Moderate    │   │  ║
+║  │   │ HistGradientBoostingRegressor │ 0.94     │ 0.76    │ 0.63  │ Moderate    │   │  ║
+║  │   │ SVR                           │ 0.85     │ 0.74    │ 0.65  │ Low         │   │  ║
+║  │   │ XGBRegressor                  │ 0.97     │ 0.74    │ 0.66  │ High        │   │  ║
+║  │   │ NuSVR                         │ 0.85     │ 0.74    │ 0.66  │ Low         │   │  ║
+║  │   │ GradientBoostingRegressor     │ 0.84     │ 0.73    │ 0.67  │ Low         │   │  ║
+║  │   │ ...                           │ ...      │ ...     │ ...   │ ...         │   │  ║
 ║  │   └─────────────────────────────────────────────────────────────────────────┘   │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                        ║
@@ -648,8 +650,14 @@ Molecule Structure → Mathematical Features → ML Model → Predicted Activity
 ║  │ • MAE: Mean Absolute Error (lower = better)                                      │  ║
 ║  │                                                                                  │  ║
 ║  │ INTERPRETATION:                                                                  │  ║
-║  │   R² = 0.85 means model explains 85% of pIC50 variation                         │  ║
-║  │   RMSE = 0.5 means predictions are off by ~0.5 pIC50 units on average           │  ║
+║  │   R² = 0.76 means model explains 76% of pIC50 variation                         │  ║
+║  │   RMSE = 0.63 means predictions are off by ~0.63 pIC50 units on average         │  ║
+║  │                                                                                  │  ║
+║  │ OVERFITTING ANALYSIS:                                                            │  ║
+║  │   • Low: R² drop < 0.15 (SVR, NuSVR, GradientBoosting)                          │  ║
+║  │   • Moderate: R² drop 0.15-0.22 (RandomForest, HistGradientBoosting)            │  ║
+║  │   • High: R² drop 0.23-0.28 (XGBRegressor, ExtraTrees)                          │  ║
+║  │   • Severe: R² drop > 0.28 (DecisionTree)                                        │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                        ║
 ╚═══════════════════════════════════════════════════════════════════════════════════════╝
