@@ -186,6 +186,22 @@ The standard deviation of the prediction errors (residuals). It tells you how co
 A visualization comparing the ground truth values from the lab (X-axis) against the values predicted by the AI (Y-axis).
 * *Ideal:* All points falling on a straight diagonal line.
 
+### **Cross-Validation (K-Fold)**
+A resampling technique to evaluate model performance more robustly than a single train/test split.
+* *Process:* Split data into K folds, train on K-1, test on 1, repeat K times.
+* *Project implementation:* 5-fold CV on top models (RandomForest, HistGradientBoosting, GradientBoosting, SVR).
+* *Benefit:* Provides confidence intervals and reduces variance in performance estimates.
+
+### **GridSearchCV (Hyperparameter Tuning)**
+Exhaustive search over specified parameter values for an estimator.
+* *Project implementation:* Tuned RandomForest (n_estimators, max_depth, min_samples_split) and HistGradientBoosting (learning_rate, max_depth, max_iter).
+* *Benefit:* Finds optimal hyperparameters to improve model performance.
+
+### **VotingRegressor (Ensemble Method)**
+An ensemble method that combines predictions from multiple models by averaging.
+* *Project implementation:* Combined tuned RandomForest, HistGradientBoosting, and SVR.
+* *Benefit:* Reduces variance and can improve generalization.
+
 ### **Project Results Summary**
 * **Best test R²:** 0.78 (RandomForestRegressor & HistGradientBoostingRegressor)
 * **Best test RMSE:** 0.58
@@ -197,4 +213,4 @@ A visualization comparing the ground truth values from the lab (X-axis) against 
   5. SVR: R² = 0.72
 * **Overfitting analysis:** Tree-based models show moderate to severe overfitting; SVR/NuSVR show low overfitting
 * All Lipinski descriptors statistically significant for distinguishing active/inactive compounds
-* **Next steps:** Hyperparameter tuning, cross-validation, ensemble methods, feature engineering
+* **Model optimization:** Cross-validation, hyperparameter tuning, and ensemble methods implemented

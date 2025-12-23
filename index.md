@@ -157,28 +157,55 @@ This index maps the entire project workflow—from biological theory to the fina
     * **Action (What):** Training 30+ Regression Models simultaneously.
     * **Justification (Why):** There is no single "best" AI model. Instead of guessing, we run a tournament to empirically find which algorithm works best for this specific chemical dataset.
     * **Implementation (How):** `LazyRegressor.fit(X_train, X_test, Y_train, Y_test)`.
-    * **Notebook Cells:** 146-160
+    * **Notebook Cells:** 158-167
     * **Libraries:** `lazypredict.Supervised.LazyRegressor`
+
+### **Chapter 11: Model Optimization**
+* **11.1. Train vs Test Comparison**
+    * **Topic:** Overfitting Analysis.
+    * **Action (What):** Comparing training and test performance across all models.
+    * **Justification (Why):** Identifies which models generalize well vs. which overfit.
+    * **Notebook Cells:** 168-175
+    * **Output:** `models_train_vs_test_comparison.csv`
+
+* **11.2. Cross-Validation (K-Fold)**
+    * **Topic:** Robust Performance Estimation.
+    * **Action (What):** 5-fold cross-validation on top models.
+    * **Justification (Why):** Single train/test split can be misleading. K-fold provides confidence intervals.
+    * **Implementation (How):** `cross_val_score(model, X, Y, cv=KFold(n_splits=5))`.
+    * **Notebook Cells:** 176-178
+    * **Output:** `plot_cv_results.pdf`
+
+* **11.3. Hyperparameter Tuning (GridSearchCV)**
+    * **Topic:** Model Optimization.
+    * **Action (What):** Exhaustive search over hyperparameter grid for RandomForest and HistGradientBoosting.
+    * **Justification (Why):** Default parameters rarely optimal. Tuning can significantly improve performance.
+    * **Implementation (How):** `GridSearchCV(model, param_grid, cv=5)`.
+    * **Notebook Cells:** 179-182
+
+* **11.4. Ensemble Methods (VotingRegressor)**
+    * **Topic:** Model Combination.
+    * **Action (What):** Combining tuned RandomForest, HistGradientBoosting, and SVR.
+    * **Justification (Why):** Ensemble reduces variance and can improve generalization.
+    * **Implementation (How):** `VotingRegressor(estimators=[...])`.
+    * **Notebook Cells:** 183-186
+    * **Output:** `models_final_comparison.csv`, `plot_final_model_comparison.pdf`
 
 ---
 
 ## Part VI: Evaluation & Conclusion
 
-### **Chapter 11: The Report Card**
-* **11.1. Performance Metrics**
+### **Chapter 12: The Report Card**
+* **12.1. Performance Metrics**
     * **Topic:** $R^2$ and RMSE.
     * **Action (What):** Calculating the Coefficient of Determination ($R^2$) and Root Mean Squared Error.
     * **Justification (Why):** These metrics quantify reliability. A high $R^2$ (>0.6) proves the model has learned the underlying chemical rules.
-    * **Findings:** Random Forest and Decision Trees typically perform best (~0.71).
-    * **Notebook Cells:** 161-166
-* **11.2. Visualization of Accuracy**
-    * **Topic:** Experimental vs. Predicted Plot.
-    * **Action (What):** Plotting Real Lab Values ($X$) vs. AI Predictions ($Y$).
-    * **Justification (Why):** A visual sanity check. Ideally, all points fall on a straight diagonal line, indicating perfect prediction.
+    * **Findings:** RandomForest and HistGradientBoosting achieve R² = 0.78 on test set.
+    * **Notebook Cells:** 187-189
 
-### **Chapter 12: Final Product**
-* **12.1. The QSAR Model**
-    * **Outcome:** A validated computational tool.
+### **Chapter 13: Final Product**
+* **13.1. The QSAR Model**
+    * **Outcome:** A validated, optimized computational tool.
     * **Justification (Why):** We can now screen millions of *new, unmade* chemical structures and predict their potential to treat Alzheimer's Disease, drastically accelerating the drug discovery pipeline.
 
 ---
@@ -207,10 +234,16 @@ Model Training → Predictions
 
 | File | Generated In | Description |
 |------|--------------|-------------|
-| `Beta_amyloid_A4_protein_bioactivity_data_curated.csv` | Section 2 | Filtered for IC50, nM units |
-| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled.csv` | Section 2 | With bioactivity class labels |
-| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled_2class_pIC50.csv` | Section 3 | Binary classification |
-| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled_3class_pIC50.csv` | Section 3 | 3-class with pIC50 |
+| `Beta_amyloid_A4_protein_bioactivity_data_curated.csv` | Section 3 | Filtered for IC50, nM units |
+| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled.csv` | Section 3 | With bioactivity class labels |
+| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled_2class_pIC50.csv` | Section 4 | Binary classification |
+| `Beta_amyloid_A4_protein_bioactivity_data_curated_and_labelled_3class_pIC50.csv` | Section 4 | 3-class with pIC50 |
 | `molecule.smi` | Section 5 | SMILES for fingerprinting |
 | `descriptors_output.csv` | Section 5 | PubChem fingerprints |
 | `plot_*.pdf` | Section 4 | EDA visualizations |
+| `models_train_results.csv` | Section 6.4 | Training set performance |
+| `models_test_results.csv` | Section 6.4 | Test set performance |
+| `models_train_vs_test_comparison.csv` | Section 6.4 | Train vs test comparison with overfitting analysis |
+| `plot_cv_results.pdf` | Section 6.5 | Cross-validation results visualization |
+| `models_final_comparison.csv` | Section 6.7 | Default vs tuned vs ensemble comparison |
+| `plot_final_model_comparison.pdf` | Section 6.7 | Final model comparison visualization |
