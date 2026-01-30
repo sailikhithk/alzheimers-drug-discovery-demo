@@ -1,0 +1,187 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Machine Learning-Based QSAR Modeling for Predicting Bioactivity of Beta-Amyloid A4 Protein Inhibitors: A Computational Approach to Alzheimer's Drug Discovery}
+
+\author{\IEEEauthorblockN{Sai Likhith Kanuparthi}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{University Name}\\
+City, Country \\
+email@example.com}}
+
+\maketitle
+
+\begin{abstract}
+Alzheimer's disease is a progressive neurodegenerative disorder affecting over 55 million people worldwide, with beta-amyloid protein aggregation representing a primary therapeutic target. Traditional drug discovery requires over a decade and billions of dollars per approved compound, necessitating computational approaches to accelerate candidate identification. This study develops Quantitative Structure-Activity Relationship models using machine learning to predict the bioactivity of small molecule inhibitors against beta-amyloid A4 protein. Bioactivity data for 1,319 compounds were retrieved from the ChEMBL database, filtered for half maximal inhibitory concentration measurements in nanomolar units, and classified as active, intermediate, or inactive based on standard potency thresholds. PubChem molecular fingerprints comprising 881 binary features were calculated and reduced to 178 features via variance threshold filtering. Exploratory analysis confirmed statistically significant differences between active and inactive compounds across all Lipinski descriptors. Thirty-five regression algorithms were benchmarked, followed by five-fold cross-validation and hyperparameter optimization. The optimized Random Forest and Histogram Gradient Boosting regressors achieved the best predictive performance with coefficient of determination values of 0.78 and root mean squared error of 0.58 on the held-out test set. These results demonstrate practical utility for virtual screening of novel drug candidates and provide a reproducible computational framework for accelerating early-stage Alzheimer's drug discovery.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Alzheimer's Disease, Quantitative Structure-Activity Relationship, Machine Learning, Beta-Amyloid A4, Drug Discovery, Random Forest
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Alzheimer's disease is a chronic neurodegenerative disorder and the leading cause of dementia, affecting approximately 55 million people globally \cite{adi2024}. The disease is characterized by the accumulation of extracellular amyloid-beta plaques and intracellular neurofibrillary tangles, leading to synaptic failure and neuronal death \cite{alz2025}. The amyloid hypothesis posits that beta-amyloid peptide aggregation, derived from proteolysis of the Amyloid Precursor Protein, is the primary driver of pathogenesis \cite{selkoe2016}. Consequently, beta-amyloid A4 protein remains a critical therapeutic target.
+
+Despite decades of research, attrition rates for Alzheimer's drug candidates remain exceptionally high. Traditional drug discovery pipelines require over a decade and approximately 2.2 billion dollars to bring a new molecular entity to market \cite{deloitte2024}. Computational methods, specifically Quantitative Structure-Activity Relationship (QSAR) modeling, offer a cost-effective alternative by predicting biological activity from chemical structure \cite{cherkasov2014}.
+
+This study leverages machine learning to construct robust QSAR models for beta-amyloid A4 inhibitors. By correlating molecular fingerprints with bioactivity data from the ChEMBL database, we identify structural features governing potency and provide a predictive framework for virtual screening.
+
+\section{Materials and Methods}
+
+\subsection{Data Acquisition and Curation}
+
+Experimental bioactivity data was sourced from the ChEMBL database, a manually curated repository of bioactive molecules \cite{zdrazil2024}. The target ``Beta-amyloid A4 protein'' (ChEMBL ID: CHEMBL2487) was queried, yielding 7,918 initial entries.
+
+Filtration criteria included:
+\begin{itemize}
+    \item Bioactivity type restricted to IC50 measurements
+    \item Units standardized to nanomolar
+    \item Removal of entries with missing values
+    \item Duplicate SMILES handling
+\end{itemize}
+
+The final curated dataset comprised 1,319 unique compounds.
+
+\subsection{Data Preprocessing and Labeling}
+
+Compounds were labeled based on IC50 values:
+\begin{itemize}
+    \item \textbf{Active:} IC50 $\leq$ 1,000 nM
+    \item \textbf{Intermediate:} 1,000 nM $<$ IC50 $<$ 10,000 nM
+    \item \textbf{Inactive:} IC50 $\geq$ 10,000 nM
+\end{itemize}
+
+IC50 values were converted to pIC50 using:
+\begin{equation}
+    pIC50 = -\log_{10}(IC50 \times 10^{-9})
+\end{equation}
+
+This transformation normalizes the distribution for regression modeling.
+
+\subsection{Feature Engineering}
+
+Two descriptor types were calculated:
+
+\textbf{Lipinski Descriptors:} Molecular weight, LogP, hydrogen bond donors, and hydrogen bond acceptors were computed using RDKit \cite{landrum2024} for drug-likeness assessment per Lipinski's Rule of Five \cite{lipinski1997}.
+
+\textbf{Molecular Fingerprints:} SMILES structures were converted to 881-bit PubChem fingerprints using PaDEL-Descriptor \cite{yap2011}. Variance threshold filtering (threshold = 0.16) reduced features to 178.
+
+\subsection{Machine Learning Pipeline}
+
+Data was split into training (80\%, n=1,055) and testing (20\%, n=264) sets. LazyPredict \cite{pandala2022} screened 35 regression algorithms. Top performers underwent optimization:
+
+\begin{itemize}
+    \item \textbf{Random Forest Regressor:} Ensemble bagging method \cite{breiman2001}
+    \item \textbf{HistGradientBoosting Regressor:} Histogram-based gradient boosting
+    \item \textbf{Support Vector Regression:} Evaluated for overfitting robustness
+\end{itemize}
+
+Hyperparameter tuning used GridSearchCV with 5-fold cross-validation \cite{pedregosa2011}.
+
+\section{Results}
+
+\subsection{Exploratory Data Analysis}
+
+Mann-Whitney U tests confirmed statistically significant differences ($p < 0.05$) between active and inactive compounds across all Lipinski descriptors:
+\begin{itemize}
+    \item pIC50: $p < 0.001$
+    \item Molecular Weight: $p < 0.001$
+    \item LogP: $p < 0.05$
+    \item Hydrogen Bond Donors: $p < 0.001$
+    \item Hydrogen Bond Acceptors: $p < 0.001$
+\end{itemize}
+
+\subsection{Model Performance}
+
+Tree-based ensemble methods outperformed linear and distance-based algorithms. Table~\ref{tab:results} summarizes performance metrics.
+
+\begin{table}[htbp]
+\caption{Model Performance Comparison}
+\label{tab:results}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Train R²} & \textbf{Test R²} & \textbf{RMSE} \\
+\midrule
+Random Forest & 0.95 & 0.78 & 0.58 \\
+HistGradientBoosting & 0.94 & 0.78 & 0.59 \\
+XGBRegressor & 0.97 & 0.77 & 0.61 \\
+SVR & 0.86 & 0.72 & 0.67 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Overfitting Analysis}
+
+Random Forest and HistGradientBoosting achieved highest test accuracy ($R^2 = 0.78$) with moderate overfitting indicated by training-testing gaps. SVR demonstrated lower overfitting (Train $R^2 = 0.86$, Test $R^2 = 0.72$) but reduced predictive capacity.
+
+\section{Discussion}
+
+The computational pipeline successfully identifies beta-amyloid A4 inhibitors with $R^2 = 0.78$, indicating that 178 PubChem fingerprint features capture sufficient structural information for bioactivity prediction.
+
+Statistical significance of Lipinski descriptors confirms that bioactivity depends on physicochemical properties including lipophilicity and molecular size, which influence blood-brain barrier permeability \cite{pardridge2012}.
+
+Limitations include moderate overfitting in tree-based models due to high dimensionality relative to sample size. Future work could employ recursive feature elimination or Graph Neural Networks for improved generalization \cite{cha2024}.
+
+\section{Conclusion}
+
+This study developed robust QSAR models predicting Alzheimer's drug candidate potency with high accuracy. Random Forest and HistGradientBoosting emerged as optimal algorithms. The computational framework enables rapid virtual screening of chemical libraries, significantly reducing time and cost in early-stage Alzheimer's drug discovery.
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{14}
+
+\bibitem{adi2024}
+Alzheimer's Disease International, ``World Alzheimer report 2024: Global changes in attitudes to dementia,'' 2024. [Online]. Available: https://www.alzint.org/
+
+\bibitem{alz2025}
+Alzheimer's Association, ``2025 Alzheimer's disease facts and figures,'' \textit{Alzheimer's \& Dementia}, vol. 21, no. 4, pp. 1598--1695, 2025.
+
+\bibitem{selkoe2016}
+D. J. Selkoe and J. Hardy, ``The amyloid hypothesis of Alzheimer's disease at 25 years,'' \textit{EMBO Molecular Medicine}, vol. 8, no. 6, pp. 595--608, 2016.
+
+\bibitem{deloitte2024}
+Deloitte, ``Measuring the return from pharmaceutical innovation 2024,'' Deloitte Centre for Health Solutions, 2024.
+
+\bibitem{cherkasov2014}
+A. Cherkasov \textit{et al.}, ``QSAR modeling: Where have you been? Where are you going to?'' \textit{Journal of Medicinal Chemistry}, vol. 57, no. 12, pp. 4977--5010, 2014.
+
+\bibitem{zdrazil2024}
+B. Zdrazil \textit{et al.}, ``The ChEMBL database in 2023: A drug discovery platform spanning multiple bioactivity data types and time periods,'' \textit{Nucleic Acids Research}, vol. 52, no. D1, pp. D1180--D1192, 2024.
+
+\bibitem{landrum2024}
+G. Landrum, ``RDKit: Open-source cheminformatics software,'' 2024. [Online]. Available: https://www.rdkit.org/
+
+\bibitem{lipinski1997}
+C. A. Lipinski, F. Lombardo, B. W. Dominy, P. J. Feeney, and A. D. Adler, ``Experimental and computational approaches to estimate solubility and permeability in drug discovery and development settings,'' \textit{Advanced Drug Delivery Reviews}, vol. 23, no. 1--3, pp. 3--25, 1997.
+
+\bibitem{yap2011}
+C. W. Yap, ``PaDEL-descriptor: An open source software to calculate molecular descriptors and fingerprints,'' \textit{Journal of Computational Chemistry}, vol. 32, no. 7, pp. 1466--1474, 2011.
+
+\bibitem{pandala2022}
+S. R. Pandala, ``LazyPredict,'' PyPI, 2022. [Online]. Available: https://pypi.org/project/lazypredict/
+
+\bibitem{breiman2001}
+L. Breiman, ``Random forests,'' \textit{Machine Learning}, vol. 45, no. 1, pp. 5--32, 2001.
+
+\bibitem{pedregosa2011}
+F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine learning in Python,'' \textit{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
+
+\bibitem{pardridge2012}
+W. M. Pardridge, ``Drug transport across the blood--brain barrier,'' \textit{Journal of Cerebral Blood Flow \& Metabolism}, vol. 32, no. 11, pp. 1959--1972, 2012.
+
+\bibitem{cha2024}
+Y. Cha, R. I. Erickson, D. L. Bhatt, and A. P. Bhatt, ``Navigating the frontiers of machine learning in neurodegenerative disease therapeutics,'' \textit{Pharmaceuticals}, vol. 17, no. 2, p. 158, 2024.
+
+\end{thebibliography}
+
+\end{document}
