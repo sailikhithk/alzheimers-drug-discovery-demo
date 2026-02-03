@@ -1,325 +1,364 @@
 @startuml Alzheimer's Drug Discovery Workflow
 !theme plain
 skinparam backgroundColor #FFFFFF
-skinparam defaultFontSize 11
+skinparam defaultFontSize 10
 skinparam defaultFontName Arial
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+left to right direction
 
-title Alzheimer's Drug Discovery: Complete Data Flow & Tool Chain
+title Alzheimer's Drug Discovery: Complete Data Flow & Tool Chain (Landscape View)
 
 ' Define colors
 skinparam rectangle {
     BackgroundColor<<database>> #E3F2FD
     BorderColor<<database>> #1976D2
+    FontColor<<database>> #000000
     BackgroundColor<<tool>> #FFF3E0
     BorderColor<<tool>> #F57C00
+    FontColor<<tool>> #000000
     BackgroundColor<<process>> #E8F5E9
     BorderColor<<process>> #388E3C
+    FontColor<<process>> #000000
     BackgroundColor<<output>> #F3E5F5
     BorderColor<<output>> #7B1FA2
+    FontColor<<output>> #000000
+    BackgroundColor<<section>> #FAFAFA
+    BorderColor<<section>> #757575
+    FontColor<<section>> #000000
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+    FontSize 9
 }
 
 ' ============================================================================
-' SECTION 0: SETUP
+' HORIZONTAL FLOW: LEFT TO RIGHT (3 ROWS)
 ' ============================================================================
-package "SECTION 0: Setup (Google Colab)" #FAFAFA {
-    rectangle "Google Drive\nMount" as drive <<tool>>
-    rectangle "Set Working\nDirectory" as workdir <<process>>
-    rectangle "Install Libraries\n(uv pip install)" as install <<tool>>
-    
-    drive -down-> workdir
-    workdir -down-> install
-    
-    note right of install
-        **Libraries Installed:**
-        • pandas, numpy
-        • scikit-learn
-        • RDKit
-        • LazyPredict
-        • XGBoost, LightGBM
-        • matplotlib, seaborn
-        • scipy
-    end note
-}
+
+' ROW 1: DATA COLLECTION (Section 0 & 3)
+rectangle "**SETUP**\nGoogle\nColab" as sec0 <<section>>
+database "**ChEMBL**\nDatabase\n(EMBL-EBI)" as chembl <<database>>
+rectangle "**Raw**\n7,918\ncompounds" as raw <<output>>
+rectangle "**Filter**\npandas" as clean <<process>>
+rectangle "**Curated**\n1,319\ncompounds" as curated <<output>>
+rectangle "**Classify**\nActive/\nInactive" as classify <<process>>
+rectangle "**Labeled**\nData" as labeled <<output>>
+
+' ROW 2: EDA & FEATURE ENGINEERING (Section 4 & 5)
+rectangle "**RDKit**\nLipinski" as rdkit <<tool>>
+rectangle "**pIC50**\nTransform" as pic50 <<process>>
+rectangle "**Stats**\nMann-\nWhitney" as stats <<tool>>
+rectangle "**Export**\nSMILES" as export <<process>>
+database "**PubChem**\nFingerprint\n(NIH/NCBI)" as pubchem <<database>>
+rectangle "**PaDEL**\nJava Tool" as padel <<tool>>
+rectangle "**881**\nFingerprints" as fingerprints <<output>>
+rectangle "**Merge**\nX + Y" as merge <<process>>
+rectangle "**Final**\n1,319×883" as final <<output>>
+
+' ROW 3: MACHINE LEARNING (Section 6 & 7)
+rectangle "**Variance**\nFilter\n881→178" as variance <<process>>
+rectangle "**Split**\n80/20" as split <<process>>
+rectangle "**Lazy**\nPredict\n30+ Models" as lazy <<tool>>
+rectangle "**Top 5**\nModels" as top5 <<output>>
+rectangle "**Cross**\nValidation\n5-Fold" as cv <<tool>>
+rectangle "**Grid**\nSearch" as grid <<tool>>
+rectangle "**Ensemble**\nVoting" as ensemble <<tool>>
+rectangle "**FINAL**\nR²=0.78\nRMSE=0.58" as final_model <<output>>
 
 ' ============================================================================
-' SECTION 3: DATA COLLECTION
+' CONNECTIONS: ROW 1 (DATA COLLECTION)
 ' ============================================================================
-package "SECTION 3: Data Collection & Cleaning" #FAFAFA {
-    
-    ' Data Sources
-    database "ChEMBL Database\n(UK - EMBL-EBI)" as chembl <<database>>
-    
-    rectangle "Raw Excel File\n7,918 compounds\n45 columns" as excel <<database>>
-    
-    rectangle "pandas.read_excel()\nLoad Data" as load <<tool>>
-    
-    ' Cleaning steps
-    rectangle "Filter 1:\nIC50 only\n(1,497 rows)" as filter1 <<process>>
-    rectangle "Filter 2:\nnM units only\n(1,351 rows)" as filter2 <<process>>
-    rectangle "Filter 3:\nRemove nulls\n(1,319 rows)" as filter3 <<process>>
-    
-    ' Labeling
-    rectangle "Bioactivity\nClassification\nFunction" as classify <<process>>
-    
-    ' Output
-    rectangle "Curated Dataset\n1,319 compounds\nIC50 + SMILES + MW" as curated <<output>>
-    
-    rectangle "Labeled Dataset\nActive: 449\nIntermediate: 375\nInactive: 495" as labeled <<output>>
-    
-    chembl -down-> excel : "Downloaded\n(pre-processed)"
-    excel -down-> load
-    load -down-> filter1
-    filter1 -down-> filter2
-    filter2 -down-> filter3
-    filter3 -down-> curated
-    curated -down-> classify
-    classify -down-> labeled
-    
-    note right of chembl
-        **ChEMBL Provides:**
-        • IC50 measurements
-        • SMILES structures
-        • Molecular weights
-        • ChEMBL IDs
-        • Assay metadata
-    end note
-    
-    note right of classify
-        **Classification Rules:**
-        • Active: IC50 ≤ 1,000 nM
-        • Intermediate: 1K-10K nM
-        • Inactive: IC50 ≥ 10,000 nM
-    end note
-}
+
+sec0 -right-> chembl : "Setup"
+chembl -right-> raw : "Download"
+raw -right-> clean : "Filter"
+clean -right-> curated : "1,319"
+curated -right-> classify : "Label"
+classify -right-> labeled : "Classes"
 
 ' ============================================================================
-' SECTION 4: EXPLORATORY DATA ANALYSIS
+' CONNECTIONS: ROW 1 → ROW 2 (EDA START)
 ' ============================================================================
-package "SECTION 4: Exploratory Data Analysis" #FAFAFA {
-    
-    rectangle "RDKit Library\n(Chemistry)" as rdkit <<tool>>
-    
-    rectangle "Calculate\nLipinski Descriptors" as lipinski <<process>>
-    
-    rectangle "Lipinski Features:\n• MW (Molecular Weight)\n• LogP (Lipophilicity)\n• NumHDonors\n• NumHAcceptors" as lipinski_out <<output>>
-    
-    rectangle "pIC50\nTransformation\n-log₁₀(IC50 in M)" as pic50 <<process>>
-    
-    rectangle "Remove\nIntermediate Class\n(944 compounds)" as binary <<process>>
-    
-    rectangle "matplotlib +\nseaborn\nVisualization" as viz <<tool>>
-    
-    rectangle "Box Plots:\n• MW distribution\n• LogP distribution\n• pIC50 distribution\n• H-bond donors/acceptors" as plots <<output>>
-    
-    rectangle "scipy.stats\nMann-Whitney U Test" as stats <<tool>>
-    
-    rectangle "Statistical Results:\nAll p < 0.05\n(Significant!)" as pvalues <<output>>
-    
-    labeled -down-> rdkit
-    rdkit -down-> lipinski
-    lipinski -down-> lipinski_out
-    lipinski_out -down-> pic50
-    pic50 -down-> binary
-    binary -down-> viz
-    viz -down-> plots
-    binary -down-> stats
-    stats -down-> pvalues
-    
-    note right of rdkit
-        **RDKit Functions:**
-        • Chem.MolFromSmiles()
-        • Descriptors.MolWt()
-        • Descriptors.MolLogP()
-        • Descriptors.NumHDonors()
-        • Descriptors.NumHAcceptors()
-    end note
-    
-    note right of pic50
-        **Why Transform?**
-        • IC50 spans 6 orders of magnitude
-        • Log transform normalizes
-        • Higher pIC50 = Better drug
-        • ML works better with normal dist.
-    end note
-}
+
+labeled -down-> rdkit : "EDA"
+labeled -down-> pic50 : "Transform"
 
 ' ============================================================================
-' SECTION 5: FEATURE ENGINEERING
+' CONNECTIONS: ROW 2 (EDA & FEATURES)
 ' ============================================================================
-package "SECTION 5: Feature Engineering (Molecular Fingerprints)" #FAFAFA {
-    
-    rectangle "pandas.to_csv()\nExport SMILES" as export_smiles <<tool>>
-    
-    rectangle "molecule.smi\n1,319 SMILES\n(tab-separated)" as smiles_file <<output>>
-    
-    database "PubChem\nFingerprint System\n(USA - NIH/NCBI)" as pubchem <<database>>
-    
-    rectangle "PaDEL-Descriptor\n(Java Tool)" as padel <<tool>>
-    
-    rectangle "descriptors_output.csv\n881 PubChem\nFingerprints" as fingerprints <<output>>
-    
-    rectangle "pandas.concat()\nMerge X + Y" as merge <<process>>
-    
-    rectangle "Final Dataset\n1,319 × 883\n(881 FP + MW + pIC50)" as final_data <<output>>
-    
-    lipinski_out -down-> export_smiles
-    export_smiles -down-> smiles_file
-    smiles_file -down-> padel
-    pubchem -down-> padel : "Defines 881\nsubstructures"
-    padel -down-> fingerprints
-    fingerprints -down-> merge
-    pic50 -down-> merge
-    merge -down-> final_data
-    
-    note right of pubchem
-        **PubChem Fingerprints:**
-        • 881-bit binary vector
-        • Bits 1-115: Element counts
-        • Bits 116-263: Ring systems
-        • Bits 264-459: Atom pairs
-        • Bits 460-579: Environments
-        • Bits 580-881: SMARTS patterns
-    end note
-    
-    note right of padel
-        **PaDEL Command:**
-        java -jar PaDEL-Descriptor.jar
-        -fingerprints
-        -dir molecule.smi
-        -file descriptors_output.csv
-    end note
-}
+
+rdkit -right-> stats : "Lipinski"
+pic50 -right-> stats : "pIC50"
+stats -right-> export : "Validate"
+export -right-> pubchem : "SMILES"
+pubchem -right-> padel : "Fingerprint"
+padel -right-> fingerprints : "881 bits"
+fingerprints -right-> merge : "Features"
+pic50 -down-> merge : "Target"
+merge -right-> final : "Dataset"
 
 ' ============================================================================
-' SECTION 6: MACHINE LEARNING
+' CONNECTIONS: ROW 2 → ROW 3 (ML START)
 ' ============================================================================
-package "SECTION 6: Model Building & Optimization" #FAFAFA {
-    
-    ' Feature Selection
-    rectangle "scikit-learn\nVarianceThreshold\n(threshold=0.16)" as variance <<tool>>
-    
-    rectangle "Filtered Features\n881 → 178 features" as filtered <<output>>
-    
-    ' Train/Test Split
-    rectangle "scikit-learn\ntrain_test_split\n(80/20)" as split <<tool>>
-    
-    rectangle "Training Set\n1,055 samples\n178 features" as train <<output>>
-    
-    rectangle "Test Set\n264 samples\n178 features" as test <<output>>
-    
-    ' Model Comparison
-    rectangle "LazyPredict\nLazyRegressor\n(30+ models)" as lazy <<tool>>
-    
-    rectangle "Model Rankings:\n1. RandomForest\n2. HistGradientBoosting\n3. XGBoost\n4. MLPRegressor\n5. SVR" as rankings <<output>>
-    
-    ' Cross-Validation
-    rectangle "scikit-learn\ncross_val_score\n(5-fold CV)" as cv <<tool>>
-    
-    rectangle "CV Results:\nRF: 0.76 ± 0.04\nHGB: 0.75 ± 0.05" as cv_results <<output>>
-    
-    ' Hyperparameter Tuning
-    rectangle "scikit-learn\nGridSearchCV" as grid <<tool>>
-    
-    rectangle "Tuned Models:\n• RandomForest\n• HistGradientBoosting" as tuned <<output>>
-    
-    ' Ensemble
-    rectangle "scikit-learn\nVotingRegressor\n(RF + HGB + SVR)" as ensemble <<tool>>
-    
-    rectangle "Final Model\nR² = 0.78\nRMSE = 0.58" as final_model <<output>>
-    
-    final_data -down-> variance
-    variance -down-> filtered
-    filtered -down-> split
-    split -down-> train
-    split -down-> test
-    train -down-> lazy
-    test -down-> lazy
-    lazy -down-> rankings
-    rankings -down-> cv
-    cv -down-> cv_results
-    cv_results -down-> grid
-    grid -down-> tuned
-    tuned -down-> ensemble
-    ensemble -down-> final_model
-    
-    note right of variance
-        **Why Remove Low Variance?**
-        • Features that are always 0 or 1
-        • Provide no information
-        • Reduce noise & speed up training
-    end note
-    
-    note right of lazy
-        **Models Tested:**
-        • Linear: Ridge, Lasso, ElasticNet
-        • Trees: RF, ExtraTrees, GB
-        • Boosting: XGB, LightGBM, HGB
-        • SVM: SVR, NuSVR
-        • Neural: MLPRegressor
-        • Neighbors: KNN
-        • And 20+ more...
-    end note
-}
+
+final -down-> variance : "ML"
 
 ' ============================================================================
-' SECTION 7: RESULTS & OUTPUTS
+' CONNECTIONS: ROW 3 (MACHINE LEARNING)
 ' ============================================================================
-package "SECTION 7: Results & Conclusions" #FAFAFA {
-    
-    rectangle "Model Performance\nCSVs" as perf_csv <<output>>
-    
-    rectangle "Visualization\nPDFs" as viz_pdf <<output>>
-    
-    rectangle "Statistical\nValidation" as validation <<output>>
-    
-    rectangle "Key Findings:\n• R² = 0.78 (78% variance explained)\n• RMSE = 0.58 pIC50 units\n• All descriptors significant (p<0.05)\n• Moderate overfitting in tree models\n• Ensemble improves generalization" as findings <<output>>
-    
-    final_model -down-> perf_csv
-    final_model -down-> viz_pdf
-    pvalues -down-> validation
-    perf_csv -down-> findings
-    viz_pdf -down-> findings
-    validation -down-> findings
-}
+
+variance -right-> split : "178 features"
+split -right-> lazy : "Train/Test"
+lazy -right-> top5 : "Benchmark"
+top5 -right-> cv : "Select"
+cv -right-> grid : "Tune"
+grid -right-> ensemble : "Optimize"
+ensemble -right-> final_model : "Deploy"
 
 ' ============================================================================
-' LEGEND
+' ANNOTATIONS
 ' ============================================================================
-legend right
-    |= Color |= Meaning |
-    | <back:#E3F2FD>   </back> | Database / Data Source |
-    | <back:#FFF3E0>   </back> | Tool / Library |
-    | <back:#E8F5E9>   </back> | Process / Transformation |
-    | <back:#F3E5F5>   </back> | Output / Result |
-endlegend
+
+note top of chembl
+  **ChEMBL (UK - EMBL-EBI)**
+  • 2M+ bioactive compounds
+  • IC50 measurements
+  • SMILES structures
+end note
+
+note top of clean
+  **Filters Applied:**
+  7,918 → 1,497 (IC50 only)
+  → 1,351 (nM units)
+  → 1,319 (no nulls)
+end note
+
+note top of classify
+  **Classes:**
+  • Active: ≤1,000 nM (449)
+  • Intermediate: 1K-10K (375)
+  • Inactive: ≥10,000 nM (495)
+end note
+
+note top of rdkit
+  **Lipinski Descriptors:**
+  • MW (Molecular Weight)
+  • LogP (Lipophilicity)
+  • H-bond Donors
+  • H-bond Acceptors
+end note
+
+note top of pic50
+  **Formula:**
+  pIC50 = -log₁₀(IC50 in M)
+  = 9 - log₁₀(IC50 in nM)
+  
+  **Why?**
+  • Normalizes distribution
+  • Higher = Better
+end note
+
+note top of pubchem
+  **PubChem (USA - NIH/NCBI)**
+  • 100M+ compounds
+  • 881-bit fingerprint system
+  • Element counts, rings,
+    atom pairs, patterns
+end note
+
+note top of padel
+  **PaDEL-Descriptor:**
+  Java tool that reads SMILES
+  and generates PubChem
+  fingerprints (881 binary bits)
+end note
+
+note top of variance
+  **Feature Selection:**
+  Remove low-variance features
+  (threshold = 0.16)
+  881 → 178 features
+end note
+
+note top of lazy
+  **LazyPredict Tests:**
+  • RandomForest
+  • HistGradientBoosting
+  • XGBoost, LightGBM
+  • SVR, MLPRegressor
+  • 25+ more models
+end note
+
+note top of ensemble
+  **Ensemble Method:**
+  VotingRegressor combines:
+  • RandomForest
+  • HistGradientBoosting
+  • SVR
+end note
 
 ' ============================================================================
-' KEY METRICS SUMMARY
+' LEGEND & SUMMARY
 ' ============================================================================
-note bottom
+
+legend bottom left
+    **LEGEND**
+    |= Color |= Type |
+    | <back:#E3F2FD>   </back> | Database |
+    | <back:#FFF3E0>   </back> | Tool |
+    | <back:#E8F5E9>   </back> | Process |
+    | <back:#F3E5F5>   </back> | Output |
+    | <back:#FAFAFA>   </back> | Section |
+end legend
+
+note bottom right
     **PROJECT SUMMARY**
-    ═══════════════════════════════════════════════════════════════
-    **Data Sources:**
-    • ChEMBL (UK): Bioactivity measurements (IC50, SMILES)
-    • PubChem (USA): Fingerprint system (881 substructures)
-    
-    **Data Pipeline:**
-    7,918 compounds → 1,319 curated → 881 features → 178 selected
-    
-    **Best Model:**
-    RandomForest & HistGradientBoosting: R² = 0.78, RMSE = 0.58
+    ══════════════════════════════════════════════════════
+    **Workflow:** 7 Sections (0, 3-7)
+    **Data:** 7,918 → 1,319 compounds → 178 features
+    **Best Model:** RandomForest & HistGradientBoosting
+    **Performance:** R² = 0.78, RMSE = 0.58
     
     **Key Tools:**
-    • Python: pandas, numpy, scikit-learn
-    • Chemistry: RDKit, PaDEL-Descriptor
-    • ML: LazyPredict, XGBoost, LightGBM
+    • Data: pandas, numpy
+    • Chemistry: RDKit, PaDEL
+    • ML: scikit-learn, LazyPredict, XGBoost
     • Stats: scipy, matplotlib, seaborn
     
-    **Real-World Impact:**
-    • Predict drug potency from structure
-    • Screen thousands of compounds computationally
-    • Save millions in drug development costs
-    • Accelerate Alzheimer's treatment discovery
+    **Impact:** Predict drug potency computationally,
+    save millions in development costs
+end note
+
+@enduml
+
+
+' ============================================================================
+' ANNOTATIONS
+' ============================================================================
+
+note top of chembl
+  **ChEMBL Database**
+  • EMBL-EBI (UK)
+  • 2M+ bioactive compounds
+  • IC50 measurements
+  • SMILES structures
+end note
+
+note bottom of clean
+  **Filters:**
+  7,918 → 1,497 (IC50 only)
+  → 1,351 (nM units)
+  → 1,319 (no nulls)
+end note
+
+note bottom of classify
+  **Classes:**
+  • Active: ≤1,000 nM (449)
+  • Intermediate: 1K-10K (375)
+  • Inactive: ≥10,000 nM (495)
+end note
+
+note top of rdkit
+  **Lipinski Descriptors:**
+  • MW (Molecular Weight)
+  • LogP (Lipophilicity)
+  • H-bond Donors/Acceptors
+end note
+
+note top of pic50
+  **Formula:**
+  pIC50 = -log₁₀(IC50 in M)
+  = 9 - log₁₀(IC50 in nM)
+  
+  Higher = Better potency
+end note
+
+note top of pubchem
+  **PubChem Database**
+  • NIH/NCBI (USA)
+  • 100M+ compounds
+  • 881-bit fingerprint
+  • Structural patterns
+end note
+
+note bottom of padel
+  **PaDEL-Descriptor:**
+  Java tool that reads SMILES
+  and generates PubChem
+  fingerprints (881 binary bits)
+end note
+
+note bottom of variance
+  **Feature Selection:**
+  Remove low-variance features
+  (threshold = 0.16)
+  881 → 178 features
+end note
+
+note bottom of lazy
+  **LazyPredict Tests:**
+  • RandomForest
+  • HistGradientBoosting
+  • XGBoost, LightGBM
+  • SVR, MLPRegressor
+  • 25+ more models
+end note
+
+note bottom of ensemble
+  **Ensemble Method:**
+  VotingRegressor combines:
+  • RandomForest
+  • HistGradientBoosting
+  • SVR
+end note
+
+' ============================================================================
+' LEGEND & SUMMARY
+' ============================================================================
+
+legend bottom left
+    **LEGEND**
+    |= Color |= Type |
+    | <back:#E3F2FD>   </back> | Database |
+    | <back:#FFF3E0>   </back> | Tool |
+    | <back:#E8F5E9>   </back> | Process |
+    | <back:#F3E5F5>   </back> | Output |
+    | <back:#FAFAFA>   </back> | Section |
+    
+    **WORKFLOW SECTIONS:**
+    • Section 0: Setup (Google Colab)
+    • Section 3: Data Collection (ChEMBL)
+    • Section 4: EDA (Lipinski, pIC50)
+    • Section 5: Feature Engineering (PubChem)
+    • Section 6: Machine Learning (LazyPredict)
+    • Section 7: Results & Validation
+end legend
+
+note as summary
+    **PROJECT SUMMARY**
+    ══════════════════════════════════════════════════════
+    **Target:** Beta-amyloid A4 protein (Alzheimer's)
+    **Data Flow:** 7,918 → 1,319 compounds → 178 features
+    **Best Models:** RandomForest & HistGradientBoosting
+    **Performance:** R² = 0.78, RMSE = 0.58
+    
+    **Key Tools & Libraries:**
+    • Data: pandas, numpy
+    • Chemistry: RDKit, PaDEL-Descriptor
+    • ML: scikit-learn, LazyPredict, XGBoost, LightGBM
+    • Stats: scipy (Mann-Whitney U test)
+    • Viz: matplotlib, seaborn
+    
+    **Databases:**
+    • ChEMBL (EMBL-EBI, UK) - Bioactivity data
+    • PubChem (NIH/NCBI, USA) - Fingerprint system
+    
+    **Impact:** Predict drug potency computationally,
+    accelerate discovery, save millions in R&D costs
 end note
 
 @enduml
