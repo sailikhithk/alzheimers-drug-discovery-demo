@@ -818,6 +818,10 @@ With R² = 0.78, we can:
 | **H-Bond Acceptors** | HBA, NumHAcceptors | Hydrogen bond acceptors | Should be ≤ 10 for absorption |
 | **Molecular Fingerprints** | — | Binary vectors encoding substructures | Converts molecules into ML-ready features |
 | **PubChem Fingerprint** | — | 881-bit binary fingerprint | Checks for 881 specific substructures |
+| **PubChem** | Public Chemistry Database | NIH/NCBI chemical database (launched 2004) | Source of fingerprint system, 100M+ compounds |
+| **NCBI** | National Center for Biotechnology Information | US government research center | Maintains PubChem database |
+| **NIH** | National Institutes of Health | US medical research agency | Parent organization of NCBI |
+| **NLM** | National Library of Medicine | US medical library | Part of NIH, houses NCBI |
 | **PaDEL-Descriptor** | — | Java tool for descriptor calculation | Generates fingerprints from SMILES |
 | **Chemical Space** | — | Multidimensional descriptor space | Visualizes where active/inactive compounds cluster |
 
@@ -919,6 +923,9 @@ With R² = 0.78, we can:
 |--------------|---------|-----------------|
 | **European Molecular Biology Laboratory** | EMBL | Parent organization maintaining ChEMBL |
 | **European Bioinformatics Institute** | EBI, EMBL-EBI | Maintains ChEMBL database at Wellcome Genome Campus, UK |
+| **National Institutes of Health** | NIH | US medical research agency maintaining PubChem |
+| **National Center for Biotechnology Information** | NCBI | US research center, part of NIH, maintains PubChem |
+| **National Library of Medicine** | NLM | US medical library, part of NIH, houses NCBI |
 | **Wellcome Trust** | — | Funds genome campus hosting ChEMBL |
 | **Institute of Electrical and Electronics Engineers** | IEEE | Paper format standard used in `main.tex` |
 | **International Union of Pure and Applied Chemistry** | IUPAC | Chemical naming standards |
@@ -930,7 +937,8 @@ With R² = 0.78, we can:
 | **ChEMBL ID** | Unique compound identifier | CHEMBL3815078 |
 | **Target ChEMBL ID** | Unique protein identifier | CHEMBL2487 (Beta-amyloid A4) |
 | **UniProt** | Protein sequence database | P05067 (Beta-amyloid A4) |
-| **PubChem** | Chemical compound database | Source of fingerprint system |
+| **PubChem** | Public chemistry database (NIH/NCBI) | 100M+ compounds, source of fingerprint system |
+| **PubChem CID** | PubChem Compound ID | Unique compound identifier in PubChem |
 | **SMILES notation** | Text-based molecular structure | `CCO` represents ethanol |
 
 ### **Additional Acronyms**
@@ -967,6 +975,202 @@ With R² = 0.78, we can:
 | **NaN** | Not a Number | Null value in pandas |
 | **FTE** | Full-Time Equivalent | Staff count (EMBL-EBI has 600+ FTE) |
 | **IGO** | Intergovernmental Organization | EMBL's legal status |
+
+---
+
+## 🔗 **Where We Use What: Data Sources & Tools Map**
+
+This section shows exactly where each database, tool, and library is used in the notebook workflow.
+
+### **Data Sources (Where Our Data Comes From)**
+
+| Source | What We Get | Used In Section | Specific Use |
+|--------|-------------|-----------------|--------------|
+| **ChEMBL Database** | Bioactivity measurements (IC50 values) | Section 3.2 | Raw data: 7,918 compounds with experimental IC50 values |
+| **ChEMBL Database** | Molecular structures (SMILES) | Section 3.2 | Chemical structure representations |
+| **ChEMBL Database** | Compound metadata | Section 3.2 | Molecular weight, ChEMBL IDs, assay info |
+| **PubChem** | Fingerprint system (881-bit) | Section 5.2 | Molecular descriptor calculation method |
+| **RDKit** | Lipinski descriptors | Section 4.1 | MW, LogP, H-bond donors/acceptors |
+| **User (Manual)** | Bioactivity class labels | Section 3.4 | Active/Intermediate/Inactive classification |
+
+### **Tools & Libraries (What We Use to Process Data)**
+
+| Tool/Library | Purpose | Used In Section | Specific Operations |
+|--------------|---------|-----------------|---------------------|
+| **chembl_webresource_client** | Access ChEMBL API | Section 3.1, 3.2 | Download bioactivity data (commented out - using pre-downloaded Excel) |
+| **pandas** | Data manipulation | All sections | Load CSV/Excel, filter, merge, transform data |
+| **numpy** | Numerical operations | All sections | Mathematical calculations, array operations |
+| **openpyxl** | Excel file reading | Section 3.2 | Load `Beta_amyloid A4_protein_active_compounds.xlsx` |
+| **RDKit** | Chemistry calculations | Section 4.1, 4.2 | Calculate Lipinski descriptors, convert SMILES to molecules |
+| **PaDEL-Descriptor** | Fingerprint generation | Section 5.2 | Generate 881 PubChem fingerprints from SMILES |
+| **scikit-learn** | Machine learning | Section 6 | Feature selection, train/test split, model training, evaluation |
+| **LazyPredict** | Automated model comparison | Section 6.3 | Test 30+ regression models automatically |
+| **XGBoost** | Gradient boosting | Section 6.3, 6.6 | High-performance gradient boosting model |
+| **LightGBM** | Gradient boosting | Section 6.3 | Fast gradient boosting model |
+| **matplotlib** | Plotting | Section 4.4 | Create box plots, scatter plots |
+| **seaborn** | Statistical visualization | Section 4.4 | Enhanced box plots with styling |
+| **scipy.stats** | Statistical tests | Section 4.5 | Mann-Whitney U test |
+
+### **Detailed Workflow: Data Flow Through Tools**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 3: DATA COLLECTION                                      │
+├─────────────────────────────────────────────────────────────────┤
+│ ChEMBL Database (UK)                                            │
+│   ↓ (via Excel file)                                            │
+│ pandas.read_excel()                                             │
+│   ↓                                                              │
+│ 7,918 compounds with IC50, SMILES, MW                           │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 3.3-3.4: DATA CLEANING & LABELING                       │
+├─────────────────────────────────────────────────────────────────┤
+│ pandas filtering                                                │
+│   • Filter IC50 only                                            │
+│   • Filter nM units                                             │
+│   • Remove nulls                                                │
+│   • Remove duplicates                                           │
+│   ↓                                                              │
+│ 1,319 clean compounds                                           │
+│   ↓                                                              │
+│ Manual classification (Python function)                         │
+│   • Active: IC50 ≤ 1,000 nM                                     │
+│   • Inactive: IC50 ≥ 10,000 nM                                  │
+│   • Intermediate: Between                                       │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 4: EXPLORATORY DATA ANALYSIS                            │
+├─────────────────────────────────────────────────────────────────┤
+│ RDKit (Chemistry Library)                                       │
+│   • Chem.MolFromSmiles() - Parse SMILES                         │
+│   • Descriptors.MolWt() - Calculate MW                          │
+│   • Descriptors.MolLogP() - Calculate LogP                      │
+│   • Descriptors.NumHDonors() - Count H-donors                   │
+│   • Descriptors.NumHAcceptors() - Count H-acceptors             │
+│   ↓                                                              │
+│ Lipinski descriptors (4 features)                               │
+│   ↓                                                              │
+│ matplotlib + seaborn                                            │
+│   • Box plots (MW, LogP, pIC50, etc.)                           │
+│   • Scatter plots (MW vs LogP)                                  │
+│   ↓                                                              │
+│ scipy.stats.mannwhitneyu()                                      │
+│   • Statistical validation (p-values)                           │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 5: FEATURE ENGINEERING                                  │
+├─────────────────────────────────────────────────────────────────┤
+│ pandas.to_csv()                                                 │
+│   • Export SMILES to molecule.smi                               │
+│   ↓                                                              │
+│ PaDEL-Descriptor (Java tool)                                    │
+│   • Reads: molecule.smi                                         │
+│   • Uses: PubChem fingerprint system (881 substructures)        │
+│   • Outputs: descriptors_output.csv                             │
+│   ↓                                                              │
+│ 881 binary features per molecule                                │
+│   ↓                                                              │
+│ pandas.concat()                                                 │
+│   • Merge fingerprints + pIC50                                  │
+│   ↓                                                              │
+│ Final dataset: 1,319 × 883 (881 features + MW + pIC50)          │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 6: MACHINE LEARNING                                     │
+├─────────────────────────────────────────────────────────────────┤
+│ scikit-learn.VarianceThreshold()                                │
+│   • Remove low-variance features                                │
+│   • 881 → 178 features                                          │
+│   ↓                                                              │
+│ scikit-learn.train_test_split()                                 │
+│   • 80% train (1,055), 20% test (264)                           │
+│   ↓                                                              │
+│ LazyPredict.LazyRegressor()                                     │
+│   • Tests 30+ models automatically                              │
+│   • Uses: scikit-learn, XGBoost, LightGBM                       │
+│   ↓                                                              │
+│ Top models identified:                                          │
+│   • RandomForest (scikit-learn)                                 │
+│   • HistGradientBoosting (scikit-learn)                         │
+│   • XGBoost (xgboost library)                                   │
+│   • SVR (scikit-learn)                                          │
+│   ↓                                                              │
+│ scikit-learn.cross_val_score()                                  │
+│   • 5-fold cross-validation                                     │
+│   ↓                                                              │
+│ scikit-learn.GridSearchCV()                                     │
+│   • Hyperparameter tuning                                       │
+│   ↓                                                              │
+│ scikit-learn.VotingRegressor()                                  │
+│   • Ensemble of top models                                      │
+│   ↓                                                              │
+│ Final predictions: R² = 0.78, RMSE = 0.58                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### **Key Databases: What They Provide**
+
+| Database | Maintained By | What It Contains | What We Use From It |
+|----------|---------------|------------------|---------------------|
+| **ChEMBL** | EMBL-EBI (UK) | 2M+ bioactive compounds, 76K+ documents, 1.2M+ assays | IC50 values, SMILES, molecular weights, ChEMBL IDs |
+| **PubChem** | NCBI/NIH (USA) | 100M+ chemical compounds, structures, properties | Fingerprint system (881-bit binary vectors) |
+| **UniProt** | EBI/SIB/PIR | Protein sequences and functional information | Reference for Beta-amyloid A4 (P05067) |
+
+### **Why Multiple Sources?**
+
+| Need | Source | Reason |
+|------|--------|--------|
+| **Experimental data** | ChEMBL | Has actual lab measurements (IC50 values) |
+| **Molecular representation** | PubChem | Standardized fingerprint system for ML |
+| **Chemistry calculations** | RDKit | Open-source library for molecular descriptors |
+| **Protein information** | UniProt | Reference for target protein details |
+
+### **Data Never Leaves These Tools:**
+
+| What We DON'T Use | Why Not |
+|-------------------|---------|
+| **ChEMBL API (live)** | Too slow; we use pre-downloaded Excel file |
+| **PubChem API** | We only use their fingerprint system via PaDEL |
+| **Commercial databases** | Project uses only free, open-source resources |
+| **Proprietary ML tools** | All tools are open-source (scikit-learn, XGBoost, etc.) |
+
+### **Summary: Complete Tool Chain**
+
+```
+Data Sources:
+  ChEMBL (UK) → Bioactivity data
+  PubChem (USA) → Fingerprint system
+  
+Processing Tools:
+  Python → Programming language
+  pandas → Data manipulation
+  RDKit → Chemistry calculations
+  PaDEL → Fingerprint generation
+  
+Machine Learning:
+  scikit-learn → Core ML framework
+  LazyPredict → Model comparison
+  XGBoost → Gradient boosting
+  LightGBM → Fast gradient boosting
+  
+Visualization:
+  matplotlib → Basic plots
+  seaborn → Statistical plots
+  
+Statistics:
+  scipy → Statistical tests
+  
+Environment:
+  Google Colab → Cloud notebook
+  Jupyter → Interactive coding
+```
+
+This complete map shows exactly where each tool and database is used in our workflow!
 
 ---
 
